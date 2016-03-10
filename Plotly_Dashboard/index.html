@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Python &raquo; Dashboards</title>
+  <link rel="shortcut icon" href="https://plot.ly/gh-pages/documentation/static//images/plotly-ico.png" />
+  <link rel="stylesheet" type="text/css" href="static/css/bootstrap.min.css" />
+  <link rel="stylesheet" type="text/css" href="static/css/keen-dashboards.css" />
+  <!-- For slider -->
+  <link rel="stylesheet" type="text/css" href="static/css/iThing.css" />
+</head>
+<body class="application">
+
+  <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="sr-only">Toggle navigation</span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="../">
+          <span class="glyphicon glyphicon-chevron-left"></span>
+        </a>
+        <a class="navbar-brand" href="./">Python &raquo; Dashboards</a>
+      </div>
+      <div class="navbar-collapse collapse">
+        <ul class="nav navbar-nav navbar-left">
+          <li><a href="http://moderndata.plot.ly/update-plotly-charts-with-cron-jobs-and-python/">Cron Jobs</a></li>
+
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Streaming API <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="https://plot.ly/python/streaming-tutorial/">Python</a></li>
+              <li><a href="https://plot.ly/matlab/streaming-tutorial/">MATLAB</a></li>
+              <li><a href="https://github.com/plotly/plotly-nodejs">node.js</a></li>
+            </ul>
+          </li>
+
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">REST API <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="https://plot.ly/python/sending-data-to-charts/#overwrite-chart-data-with-new-data">Overwrite a chart's data</a></li>
+              <li><a href="https://plot.ly/python/sending-data-to-charts/#add-data-to-an-existing-trace">Adding data to an exisitng trace</a></li>
+              <li><a href="https://plot.ly/python/sending-data-to-charts/#add-new-traces-to-a-chart">Adding new traces to a chart</a></li>
+            </ul>
+          </li>
+
+          <li><a href="http://stackoverflow.com/questions/tagged/plotly?sort=newest&pageSize=15">Technical Support</a></li>         
+          <li><a href="https://Download">Download Template</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="container-fluid">
+
+    <div class="row">
+
+      <div class="col-sm-4">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            Lost and Found Animals
+          </div>
+          <div class="chart-stage">
+            <iframe width="100%" height="400px" frameborder="0" scrolling="no" src="https://plot.ly/~jojole/18/lost-found-animal-counts-in-king-county/.embed"></iframe>
+          </div>
+          <div class="chart-notes">
+            Displays the total amounts and percentages of lost, found, and adoptable pets
+          </div>
+        </div>
+      </div>
+
+      <div class="col-sm-8">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            Cities
+          </div>
+          <div class="chart-stage">
+            <div id="grid-1-1">
+              <div>
+                <iframe width="100%" height="400px" frameborder="0" scrolling="no" src="https://plot.ly/~jojole/14/cities-where-lost-pets-are-found/.embed"></iframe>
+              </div>
+            </div>
+          </div>
+          <div class="chart-notes">
+            Displays cities where lost pets are commonly found and counts of animals found within those cities
+          </div>
+        </div>
+      </div>
+
+
+
+
+
+    </div>
+
+    <div class="row">
+      <div class="col-sm-6">
+        <div class="chart-wrapper">
+          <div class="chart-title">
+            WORDCLOUD
+          </div>
+          <div class="chart-stage">
+            <iframe width="100%" height="500px" frameborder="0" scrolling="no" src="http://i.imgur.com/BM5knR2.jpg.embed"></iframe>
+          </div>
+          <div class="chart-notes">
+            WORDCLOUD      
+          </div>
+        </div>
+      </div>
+
+      <!-- end of three -->
+    </div>
+
+
+    <hr>
+    
+  </div>
+
+  <!--<script type="text/javascript" src="../../assets/lib/jquery/dist/jquery.min.js"></script>-->
+  <script type="text/javascript" src="static/js/slider/jquery-1.7.2.min.js"></script>
+  <script type="text/javascript" src="static/js/bootstrap/dist/js/bootstrap.min.js"></script>
+
+  <script type="text/javascript" src="static/js/holderjs/holder.js"></script>
+  <script>
+    Holder.add_theme("white", { background:"#fff", foreground:"#a7a7a7", size:10 });
+  </script>
+
+  <!-- Slider widget files -->
+  <script type="text/javascript" src="static/js/slider/jquery-ui.min.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQRangeSliderMouseTouch.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQRangeSliderDraggable.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQRangeSliderBar.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQRangeSliderHandle.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQRangeSliderLabel.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQRangeSlider.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQDateRangeSliderHandle.js"></script>  
+  <script type="text/javascript" src="static/js/slider/jQDateRangeSlider.js"></script>
+  <script type="text/javascript" src="static/js/slider/jQRuler.js"></script>
+  <script type="text/javascript" src="static/js/slider/slider.js"></script>
+
+</body>
+</html>
