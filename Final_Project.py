@@ -10,6 +10,7 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 import numpy as np
 import pandas as pd
+import cufflinks as cf
 
 from os import path
 from PIL import Image 
@@ -97,7 +98,7 @@ def write_descriptions_csv(input_file, output_csv):
                     writer.writerow([[row["Animal_Color"], row["Animal_Gender"], 
                                       row["Animal_Breed"], row["animal_type"]]])
                                       
-def plot_city_bar(input_dict, title):
+def plot_city_bar(input_dict, xax_name, yax_name, title):
     """
     Takes in a list of data, a dictionary of selected column type and counts, 
     and a string title. Plots a bar graph using the keys of the dictionary
@@ -116,8 +117,8 @@ def plot_city_bar(input_dict, title):
     
     layout = go.Layout(
         title = title,
-        xaxis = dict(title = "Cities"),
-        yaxis = dict(title = "Animal Counts")
+        xaxis = dict(title = xax_name),
+        yaxis = dict(title = yax_name)
     )
     fig = go.Figure(data = data, layout = layout)
     
@@ -146,15 +147,36 @@ def filter_dataframe(filename, col_names, record):
     
     return filtered    
     
-def plot_scatter(x_axis, y_axis, title):
+def plot_scatter(x_axis, y_axis, xax_name, yax_name, title):
+    """
+    Plots a scatterplot of 
+    Parameters:
+        x_axis: a list that represents x-values        
+        y_axis: a list that represents y-values  
+        xax_name: a string for x-axis title
+        yax_name: a string for y-axis title
+        title: a string for title of plot and plotly page
+        
+    Returns None
+    """
     trace = go.Scatter(
         x = x_axis,
         y = y_axis,
-        name = title,
-        mode = 'markers'
+        mode = 'markers',
+        marker = dict(
+            size = 20,
+            color = y_axis)
     )
     data = [trace]
-    py.plot(data, filename = title)   
+    
+    layout = go.Layout(
+        dict(title = title,
+        xaxis = dict(title = xax_name),
+        yaxis = dict(title = yax_name))
+    )
+                  
+    fig = dict(data = data, layout = layout)
+    py.plot(fig, filename = title)   
     
 def wordcloud(input_csv, mask_file):
     """
@@ -190,11 +212,12 @@ def main():
     
     
     print "2. Where are most pets found?"
-    city = read_csv("lost__found__adoptable_pets.csv", "City")
-    cities_count = count_entries(city)
-    most_pets = most_common(cities_count).keys()[0]
+    city_col = read_csv("lost__found__adoptable_pets.csv", "City")
+    cities = count_entries(city_col)
+    most_pets = most_common(cities).keys()[0]
     print "Most pets are found in", most_pets
-    #plot_city_bar(count_entries(cities), "Cities Where Lost Pets are Found")
+    #plot_city_bar(count_entries(city_col, "Cities", "Animal Counts", \
+    #                            "Cities Where Lost Pets are Found"))
     print
     
     
@@ -220,9 +243,11 @@ def main():
     select_count = list(petcounts["Count"])
     
     print day_counts
-    #plot_scatter(days, select_count, "Amount of Pets Found per Day of Week")
+    #plot_scatter(days, select_count, "Days of the week", "Pet counts", \
+    #             "Amount of Pets Found per Day of Week")
     print
-    
+    day_counts['Count'].iplot(filename = "Amount of Pets Found per Day of Week",
+                              bestfit = True)
     
     
     print "4. Where can animals be adopted, and how many are at each location?"
