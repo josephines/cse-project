@@ -10,13 +10,15 @@ import plotly.plotly as py
 import plotly.graph_objs as go
 import numpy as np
 import pandas as pd
-import cufflinks as cf
 
 from os import path
 from PIL import Image 
 from wordcloud import WordCloud
 from pandas import *
-py.sign_in('allykli','crj9pw4dqu')
+
+# Plotly graph to browser -- requires authentication of one account
+py.sign_in('jojole', '8o3knsdwg8')
+#py.sign_in('allykli','crj9pw4dqu')
 
 def read_csv(filename, column_name):   
     """
@@ -24,7 +26,6 @@ def read_csv(filename, column_name):
     
     Returns a list of all entries in a column name of an input file
     """
-    
     pets_csv = csv.DictReader(open(filename))
     
     entries = []
@@ -42,7 +43,6 @@ def count_entries(entries):
     Returns a dictionary in which the keys are the names of each entry, 
     and the values are the amount of times it occurs
     """
-    
     entries_counts = {}
     
     for entry in entries:
@@ -50,9 +50,6 @@ def count_entries(entries):
             entries_counts[entry] = 0
         entries_counts[entry] += 1
     return entries_counts
-
-record = read_csv("lost__found__adoptable_pets.csv", "Record_Types")
-city = read_csv("lost__found__adoptable_pets.csv", "City") 
 
 def most_common(count_dict):
     """
@@ -71,23 +68,31 @@ def most_common(count_dict):
     max_dict[highest] = max_count
     return max_dict 
     
-def pet_descriptions(column_names):
-    """ 
-    Takes in a list of column names
-    
-    Returns a list of lists containing information describing each pet
+def week_order(days_order, unordered_days, pets_per_day):
     """
-    #need to get specifically to adoptable pets, right now it is for all types
-    description_list = []
-    for col_name in column_names:
-        # if Record_Type == 'ADOPTABLE' (or parameter 'type')
-        description_list.append(read_csv("lost__found__adoptable_pets.csv", \
-                                         col_name))
-    return description_list
+    Takes in a lexicographically ordered list of strings representing the days
+    of a week and a corresponding list of numbers.
+    Returns a list of numbers reordered based on the correct ordering of days
+    of week
+        e.g. ['Fri', 'Mon', 'Wed'], [6, 2, 3] --> [2, 3, 6]
+    
+    Parameters:
+        days_order: a dictionary that maps numbers 0-6 to string days of week
+        unordered_days: a list of strings of days, ordered lexicographically
+        pets_per_day: a list of numbers
+    """    
+    mapped = {}
+    for i in range(len(unordered_days)):
+        mapped[unordered_days[i]] = pets_per_day[i] 
+     
+    ordered_count = []
+    for day in days_order.values():
+        ordered_count.append(mapped[day])
+    
+    return ordered_count
     
 def write_descriptions_csv(input_file, output_csv):  
     """
-    
     """  
      # WRITE NEW CSV
     with open(output_csv, 'wb') as f: # output csv file
@@ -100,11 +105,17 @@ def write_descriptions_csv(input_file, output_csv):
                                       
 def plot_city_bar(input_dict, xax_name, yax_name, title):
     """
-    Takes in a list of data, a dictionary of selected column type and counts, 
-    and a string title. Plots a bar graph using the keys of the dictionary
-    as the x-values and the values as the y-values. Returns None.
-    """
+    Makes a bar graph of given input dictionary with axes labels
     
+    Parameters:
+        input_dict: a dictionary mapping strings to numbers
+        xax_name: a string for x-axis title
+        yax_name: a string for y-axis title
+        title: a string for title of plot and plotly page
+        
+    Returns None
+    """
+    # Data features
     data = [
         go.Bar(
             x = input_dict.keys(),
@@ -115,18 +126,28 @@ def plot_city_bar(input_dict, xax_name, yax_name, title):
         )
     ]
     
+    # Layout of plot
     layout = go.Layout(
         title = title,
         xaxis = dict(title = xax_name),
         yaxis = dict(title = yax_name)
     )
-    fig = go.Figure(data = data, layout = layout)
     
+    # Plots figure to browser using Plotly
+    fig = go.Figure(data = data, layout = layout)
     py.plot(fig, filename = title) 
     
 def plot_record_pie(input_dict, title):
     """
+    Makes a pie graph of given input dictionary keys and values
+    
+    Parameters:
+        input_dict: a dictionary mapping strings to numbers
+        title: a string for title of plot and plotly page
+        
+    Returns None
     """
+    # Data features
     data = {
         'data': [{'labels': input_dict.keys(),
         'values': input_dict.values(),
@@ -134,13 +155,25 @@ def plot_record_pie(input_dict, title):
         'hole': .4,
         'insidetextfont': dict(color = 'rgb(255, 255, 255)')
         }],
-        
         'layout': {'title': title}
     }
 
+    # Plots data to browser using Plotly
     py.plot(data, filename = title)
     
 def filter_dataframe(filename, col_names, record):
+    """
+    Takes in a string filename and reads the file, selects specific columns of
+    a dataset, then filters those columns by a specific row entry
+    
+    Parameters:
+        filename: a string for name of file to read in
+        col_names: a list of strings of specific column names to select
+        record: a string that represents selected record type
+        
+    Returns a smaller/new dataframe from the given .csv file with specified 
+    columns/rows
+    """
     df = pd.read_csv(filename)
     selected = df[col_names] # select certain columns
     filtered = selected[selected.Record_Type == record] # filter to lost pet rows
@@ -149,7 +182,8 @@ def filter_dataframe(filename, col_names, record):
     
 def plot_scatter(x_axis, y_axis, xax_name, yax_name, title):
     """
-    Plots a scatterplot of 
+    Plots a scatterplot of given input lists with axes labels
+    
     Parameters:
         x_axis: a list that represents x-values        
         y_axis: a list that represents y-values  
@@ -178,16 +212,25 @@ def plot_scatter(x_axis, y_axis, xax_name, yax_name, title):
     fig = dict(data = data, layout = layout)
     py.plot(fig, filename = title)   
     
-def wordcloud(input_csv, mask_file):
+def wordcloud(filename, mask_file, output_name):
     """
+    Generates a word cloud 
+    
+    Parameters:
+        filename: a string representing the name of a file
+        mask_file: a string representing the name of an image file
+        output_name: a string representing the name of the wordcloud output file
+            
+    Returns None
     """
     d = path.dirname(__file__)
-    text = open(path.join(d, input_csv)).read()
+    text = open(path.join(d, filename)).read()
     mask_img = np.array(Image.open(path.join(d, mask_file)))
-    wordcloud = WordCloud(background_color="white", mask=mask_img).generate(text)
+    wordcloud = WordCloud(background_color = "white", 
+                          mask = mask_img).generate(text)
     plt.imshow(wordcloud)
     plt.axis("off")
-    plt.savefig("animal_wordcloud.png")
+    plt.savefig(output_name)
     plt.show()  
     
 ###############
@@ -196,9 +239,9 @@ def wordcloud(input_csv, mask_file):
 
 def main(): 
     """
-    Delete print statements later; they're just for debugging/showing outputs 
     """
     
+    ## 1
     print "1. How many pets are lost, found, and adoptable?"
     record = read_csv("lost__found__adoptable_pets.csv", "Record_Type")
     lost = count_entries(record)["LOST"]
@@ -207,20 +250,23 @@ def main():
     print "Lost:", lost
     print "Found:", found
     print "Adoptable:", adoptable
-    #plot_record_pie(count_entries(record), "Lost & Found Animal Counts in King County")
+    plot_record_pie(count_entries(record), \
+                    "Lost & Found Animal Counts in King County")
     print
     
     
+    ## 2
     print "2. Where are most pets found?"
     city_col = read_csv("lost__found__adoptable_pets.csv", "City")
     cities = count_entries(city_col)
     most_pets = most_common(cities).keys()[0]
     print "Most pets are found in", most_pets
-    #plot_city_bar(count_entries(city_col, "Cities", "Animal Counts", \
-    #                            "Cities Where Lost Pets are Found"))
+    plot_city_bar(count_entries(city_col), "Cities", "Animal Counts", \
+                                "Cities Where Lost Pets are Found")
     print
     
     
+    ## 3
     print "3. How does the number of pets lost vary per day of week?"
     filter_days = filter_dataframe("lost__found__adoptable_pets.csv", \
                                    ["Record_Type","Date"],"LOST")
@@ -236,20 +282,20 @@ def main():
                              
     # x-axis of scatter (days of week)                         
     dataframe = DataFrame(day_counts)              
-    days = list(dataframe.index)
+    week_days = list(dataframe.index)
     
     # y-axis of scatter (counts)
     petcounts = DataFrame(day_counts['Count'])
     select_count = list(petcounts["Count"])
     
     print day_counts
-    #plot_scatter(days, select_count, "Days of the week", "Pet counts", \
-    #             "Amount of Pets Found per Day of Week")
+    ordered_counts = week_order(days, week_days, select_count)
+    plot_scatter(days.values(), ordered_counts, "Days of the week", \
+                 "Pet counts", "Amount of Pets Found per Day of Week")
     print
-    day_counts['Count'].iplot(filename = "Amount of Pets Found per Day of Week",
-                              bestfit = True)
     
     
+    ## 4
     print "4. Where can animals be adopted, and how many are at each location?"
 
     filter_adoptable = filter_dataframe("lost__found__adoptable_pets.csv", \
@@ -265,15 +311,12 @@ def main():
     print
     
     
-    
+    ## 5
     print "5. What are the more common traits of pets in King County?"   
-    print "See animal_wordcloud.png"  
+    print "***See animal_wordcloud.png in cse-project folder***"  
+    # Plots wordcloud
     write_descriptions_csv("lost__found__adoptable_pets.csv", 'out.csv')
-    
-    # PLOTTING WORDCLOUD
-    #wordcloud('out.csv', 'cat.jpg') 
-    
-    #pd.options.mode.chained_assignment = None
+    wordcloud('out.csv', 'cat.jpg', 'animal_wordcloud.png') 
 
 if __name__ == "__main__":
     main()
