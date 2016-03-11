@@ -8,11 +8,14 @@ import os
 import matplotlib.pyplot as plt
 import plotly.plotly as py
 import plotly.graph_objs as go
+import numpy as np
+import pandas as pd
 
 from os import path
+from PIL import Image 
 from wordcloud import WordCloud
-
-# Record_Type, Current_Location, City, Memo (word cloud only)
+from pandas import *
+py.sign_in('allykli','crj9pw4dqu')
 
 def read_csv(filename, column_name):   
     """
@@ -80,11 +83,20 @@ def pet_descriptions(column_names):
         description_list.append(read_csv("lost__found__adoptable_pets.csv", \
                                          col_name))
     return description_list
-
-"""
-def word_cloud():
-"""
-
+    
+def write_descriptions_csv(input_file, output_csv):  
+    """
+    
+    """  
+     # WRITE NEW CSV
+    with open(output_csv, 'wb') as f: # output csv file
+        writer = csv.writer(f)
+        with open(input_file,'r') as csvfile: # input csv file
+            reader = csv.DictReader(csvfile, delimiter=',')
+            for row in reader:
+                    writer.writerow([[row["Animal_Color"], row["Animal_Gender"], 
+                                      row["Animal_Breed"], row["animal_type"]]])
+                                      
 def plot_city_bar(input_dict, title):
     """
     Takes in a list of data, a dictionary of selected column type and counts, 
@@ -112,6 +124,8 @@ def plot_city_bar(input_dict, title):
     py.plot(fig, filename = title) 
     
 def plot_record_pie(input_dict, title):
+    """
+    """
     data = {
         'data': [{'labels': input_dict.keys(),
         'values': input_dict.values(),
@@ -125,7 +139,35 @@ def plot_record_pie(input_dict, title):
 
     py.plot(data, filename = title)
     
-
+def filter_dataframe(filename, col_names, record):
+    df = pd.read_csv(filename)
+    selected = df[col_names] # select certain columns
+    filtered = selected[selected.Record_Type == record] # filter to lost pet rows
+    
+    return filtered    
+    
+def plot_scatter(x_axis, y_axis, title):
+    trace = go.Scatter(
+        x = x_axis,
+        y = y_axis,
+        name = title,
+        mode = 'markers'
+    )
+    data = [trace]
+    py.plot(data, filename = title)   
+    
+def wordcloud(input_csv, mask_file):
+    """
+    """
+    d = path.dirname(__file__)
+    text = open(path.join(d, input_csv)).read()
+    mask_img = np.array(Image.open(path.join(d, mask_file)))
+    wordcloud = WordCloud(background_color="white", mask=mask_img).generate(text)
+    plt.imshow(wordcloud)
+    plt.axis("off")
+    plt.savefig("animal_wordcloud.png")
+    plt.show()  
+    
 ###############
 # MAIN FUNCTION    
 ###############
@@ -135,55 +177,78 @@ def main():
     Delete print statements later; they're just for debugging/showing outputs 
     """
     
-    # 1. How many pets have been lost and how many have been found?
+    print "1. How many pets are lost, found, and adoptable?"
     record = read_csv("lost__found__adoptable_pets.csv", "Record_Type")
-    plot_record_pie(count_entries(record), "Lost & Found Animal Counts in King County")
-    
-    # 2. Where are most pets found?
-    cities = read_csv("lost__found__adoptable_pets.csv", "City")
-    plot_city_bar(count_entries(cities), "Cities Where Lost Pets are Found")
-    
-    """      
-    Gets the city with the most lost pets found 
-    city = read_csv("lost__found__adoptable_pets.csv", "City")
-    cities = count_entries(city)
-    most_pets = most_common(cities).keys()[0]
-    print "Most pets are found in", most_pets
-    """
-    
-    # 3. Is there a correlation between the day of the week and the amount of 
-    # pets lost?
-    
-    # 4. How many adoptable animals are there currently and where can they be 
-    # adopted?
+    lost = count_entries(record)["LOST"]
+    found = count_entries(record)["FOUND"]
     adoptable = count_entries(record)["ADOPTABLE"]
-    location = read_csv("lost__found__adoptable_pets.csv", "Current_Location")
-    adopt_locations = count_entries(location)
-    print "Currently,", adoptable, "animals are available for adoption."
-    print "Animals can be adopted at", adopt_locations.keys()
+    print "Lost:", lost
+    print "Found:", found
+    print "Adoptable:", adoptable
+    #plot_record_pie(count_entries(record), "Lost & Found Animal Counts in King County")
+    print
     
-    # 5. How are adoptable pets described? -> maybe change to: What are the more 
-    # common traits of adoptable pets?
     
-    # filter down to adoptable pets
-    # access "Animal_Color", "Animal_Gender", "Animal_Breed", "animal_type", 
-    # "Age" columns
-    #  (^^^ same info as the memo column)
-    # gather each column entry into a list (could be later compiled into a list
-    #   of lists if necessary for the word cloud)
+    print "2. Where are most pets found?"
+    city = read_csv("lost__found__adoptable_pets.csv", "City")
+    cities_count = count_entries(city)
+    most_pets = most_common(cities_count).keys()[0]
+    print "Most pets are found in", most_pets
+    #plot_city_bar(count_entries(cities), "Cities Where Lost Pets are Found")
+    print
+    
+    
+    print "3. How does the number of pets lost vary per day of week?"
+    filter_days = filter_dataframe("lost__found__adoptable_pets.csv", \
+                                   ["Record_Type","Date"],"LOST")
+    
+    filter_days['Date'] = pd.to_datetime(filter_days['Date']) # transpose it to proper date format
+    filter_days['day_of_week'] = filter_days['Date'].dt.dayofweek # turn it into day of week
+    days = {0:'Mon',1:'Tues',2:'Weds',3:'Thurs',4:'Fri',5:'Sat',6:'Sun'} # re-label to str days
+    filter_days['day_of_week'] = filter_days['day_of_week'].apply(lambda x: days[x]) # applying new labels
+    
+    info = filter_days.groupby("day_of_week") # group data by day of the week
+    day_counts = (info.agg({"Record_Type": "count"}) # collect counts (don't care about record data anymore)
+                      .rename(columns={"Record_Type": "Count"})) # rename column to counts
+                             
+    # x-axis of scatter (days of week)                         
+    dataframe = DataFrame(day_counts)              
+    days = list(dataframe.index)
+    
+    # y-axis of scatter (counts)
+    petcounts = DataFrame(day_counts['Count'])
+    select_count = list(petcounts["Count"])
+    
+    print day_counts
+    #plot_scatter(days, select_count, "Amount of Pets Found per Day of Week")
+    print
+    
+    
+    
+    print "4. Where can animals be adopted, and how many are at each location?"
+
+    filter_adoptable = filter_dataframe("lost__found__adoptable_pets.csv", \
+                                     ["Record_Type", "Current_Location"], \
+                                     "ADOPTABLE")
+    
+    location_group = filter_adoptable.groupby("Current_Location") # group data by day of the week
+    location_count = (location_group.agg({"Record_Type": "count"}) # collect counts (don't care about record data anymore)
+                      .rename(columns={"Record_Type": "Count"}) # rename column to counts
+                     )          
         
-    descriptions = ["Animal_Color", "Animal_Gender", "Animal_Breed", "animal_type",
-    "Age"]
-    pet_descriptions(descriptions)
+    print location_count
+    print
+    
+    
+    
+    print "5. What are the more common traits of pets in King County?"   
+    print "See animal_wordcloud.png"  
+    write_descriptions_csv("lost__found__adoptable_pets.csv", 'out.csv')
     
     # PLOTTING WORDCLOUD
-    d = path.dirname(__file__)
-    text = open(path.join(d, "lost__found__adoptable_pets.csv")).read()
-    wordcloud = WordCloud().generate(text)
-    plt.imshow(wordcloud)
-    plt.axis("off")
-    plt.show()
-      
+    #wordcloud('out.csv', 'cat.jpg') 
+    
+    #pd.options.mode.chained_assignment = None
 
 if __name__ == "__main__":
     main()
